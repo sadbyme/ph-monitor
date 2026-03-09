@@ -265,7 +265,9 @@ baseBox.classList.remove("type-base")
 
 
 
-const socket=new WebSocket("ws://localhost:3000")
+const socket = new WebSocket(
+location.protocol.replace("http","ws")+"//"+location.host
+);
 
 let lastReceiveTime=Date.now()
 let connectionTimeout=3000
