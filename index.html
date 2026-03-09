@@ -96,8 +96,6 @@ RESET BIỂU ĐỒ
 </div>
 
 
-<!-- RECORD PANEL -->
-
 <div class="record-panel">
 
 <input type="password" id="password" placeholder="Nhập mã khóa">
@@ -120,8 +118,6 @@ RECORD KẾT QUẢ
 
 </div>
 
-
-<!-- HISTORY PANEL -->
 
 <div class="history-panel">
 
@@ -147,7 +143,6 @@ XEM LỊCH SỬ
 
 </div>
 
-
 </div>
 
 
@@ -155,7 +150,6 @@ XEM LỊCH SỬ
 
 let labels=[]
 let data=[]
-
 let currentPH=0
 
 const ctx=document.getElementById("chart")
@@ -199,7 +193,6 @@ scales:{y:{min:0,max:14}}
 })
 
 
-
 function setConnectionStatus(isConnected){
 
 connectedBox.classList.remove("active-green")
@@ -215,7 +208,6 @@ disconnectedBox.classList.add("active-red")
 }
 
 
-
 function setPHStatus(ph){
 
 okBox.classList.remove("active-green")
@@ -229,7 +221,6 @@ okBox.classList.add("active-green")
 }
 
 }
-
 
 
 function setPHType(ph){
@@ -251,7 +242,6 @@ neutralBox.classList.add("type-neutral")
 }
 
 
-
 function clearStatus(){
 
 okBox.classList.remove("active-green")
@@ -264,14 +254,14 @@ baseBox.classList.remove("type-base")
 }
 
 
-
 const socket = new WebSocket(
 location.protocol.replace("http","ws")+"//"+location.host
 );
 
-let lastReceiveTime=Date.now()
-let connectionTimeout=6000
 
+let lastReceiveTime=Date.now()
+
+let connectionTimeout=10000
 
 
 socket.onmessage=function(event){
@@ -290,7 +280,7 @@ setConnectionStatus(true)
 setPHStatus(ph)
 setPHType(ph)
 
-labels.push("")
+labels.push(new Date().toLocaleTimeString())
 data.push(ph)
 
 if(data.length>60){
@@ -298,10 +288,9 @@ data.shift()
 labels.shift()
 }
 
-chart.update()
+chart.update("none")
 
 }
-
 
 
 setInterval(()=>{
@@ -315,7 +304,6 @@ clearStatus()
 }
 
 },1000)
-
 
 
 function testLED(){
@@ -335,7 +323,6 @@ body:JSON.stringify({cmd:"T"})
 }
 
 
-
 function resetChart(){
 
 data=[]
@@ -347,7 +334,6 @@ chart.data.datasets[0].data=data
 chart.update()
 
 }
-
 
 
 function unlockRecord(){
@@ -368,7 +354,6 @@ alert("Sai mã khóa")
 }
 
 }
-
 
 
 function recordPH(){
@@ -397,7 +382,6 @@ document.getElementById("noteInput").value=""
 })
 
 }
-
 
 
 function loadHistory(){
@@ -436,3 +420,4 @@ body.innerHTML += row;
 
 </body>
 </html>
+
