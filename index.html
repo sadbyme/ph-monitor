@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -11,7 +10,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
-
 
 <body>
 
@@ -32,9 +30,7 @@
 
 
 <div class="monitor-title">
-
 ĐỀ TÀI: HỆ THỐNG GIÁM SÁT CHẤT LƯỢNG NƯỚC QUA CẢM BIẾN PH
-
 </div>
 
 
@@ -74,9 +70,7 @@
 
 
 <div class="ph-value">
-
 <span id="phNumber">--</span>
-
 </div>
 
 
@@ -84,7 +78,6 @@
 
 
 <div class="button-panel">
-
 
 <button onclick="resetChart()" class="control-btn reset-btn">
 RESET BIỂU ĐỒ
@@ -98,19 +91,15 @@ RESET BIỂU ĐỒ
 <input type="password" id="password" placeholder="Nhập mã khóa">
 
 <button onclick="unlockRecord()" class="control-btn">
-
 MỞ KHÓA
-
 </button>
 
 <br><br>
 
 <input type="text" id="noteInput" placeholder="Ghi chú mẫu nước">
 
-<button id="recordBtn" onclick="recordPH()" class="control-btn record-btn" disabled>
-
+<button id="recordBtn" onclick="recordPH()" class="control-btn record-btn" style="display:none;">
 RECORD KẾT QUẢ
-
 </button>
 
 </div>
@@ -148,6 +137,8 @@ XEM LỊCH SỬ
 let labels=[]
 let data=[]
 let currentPH=0
+
+let unlocked=false
 
 const ctx=document.getElementById("chart")
 
@@ -253,7 +244,7 @@ baseBox.classList.remove("type-base")
 
 const socket = new WebSocket(
 location.protocol.replace("http","ws")+"//"+location.host
-);
+)
 
 
 let lastReceiveTime=Date.now()
@@ -322,7 +313,10 @@ const pass=document.getElementById("password").value
 
 if(pass==="1234"){
 
-recordBtn.disabled=false
+recordBtn.style.display="inline-block"
+unlocked=true
+
+document.getElementById("password").value=""
 
 alert("Đã mở khóa ghi dữ liệu")
 
@@ -337,6 +331,14 @@ alert("Sai mã khóa")
 
 
 function recordPH(){
+
+if(!unlocked){
+
+alert("Bạn chưa mở khóa ghi dữ liệu")
+
+return
+
+}
 
 const note=document.getElementById("noteInput").value
 
@@ -400,4 +402,3 @@ body.innerHTML += row;
 
 </body>
 </html>
-
