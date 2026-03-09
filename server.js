@@ -1,4 +1,3 @@
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const http = require("http");
@@ -24,11 +23,9 @@ console.log("MongoDB Connected");
 // ===== MODEL =====
 
 const PHData = mongoose.model("PHData",{
-
-ph:Number,
-note:String,
-time:Date
-
+  ph:Number,
+  note:String,
+  time:Date
 });
 
 
@@ -61,11 +58,19 @@ ws.on("message",(msg)=>{
 
 try{
 
-const data = JSON.parse(msg);
+const text = msg.toString();
+
+let data;
+
+try{
+data = JSON.parse(text);
+}catch{
+data = { ph: parseFloat(text) };
+}
 
 if(data.ph){
 
-currentPH = data.ph;
+currentPH = Number(data.ph);
 
 console.log("PH from WebSocket:",currentPH);
 
@@ -73,9 +78,9 @@ broadcastPH();
 
 }
 
-}catch(e){
+}catch(err){
 
-console.log("WS message error");
+console.log("WS message error:",err);
 
 }
 
@@ -89,6 +94,21 @@ console.log("WebSocket Client Disconnected");
 });
 
 });
+
+
+// ===== HEARTBEAT CHỐNG DISCONNECT =====
+
+setInterval(()=>{
+
+wss.clients.forEach(ws=>{
+
+if(ws.readyState===WebSocket.OPEN){
+ws.ping();
+}
+
+});
+
+},30000);
 
 
 // ===== BROADCAST PH =====
@@ -184,7 +204,7 @@ lastCommand = req.body.cmd;
 
 console.log("Command from Web:",lastCommand);
 
-// gửi qua websocket cho ESP
+// gửi lệnh realtime
 
 wss.clients.forEach(client=>{
 
@@ -201,6 +221,7 @@ cmd:lastCommand
 res.send("OK");
 
 });
+
 
 // ===== ESP LẤY LỆNH =====
 
@@ -223,4 +244,3 @@ console.log("Local:   http://localhost:"+PORT);
 console.log("=================================");
 
 });
-
