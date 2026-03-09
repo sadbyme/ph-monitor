@@ -1,0 +1,436 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+
+<meta charset="UTF-8">
+<title>PH Monitor - ICTU</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+<div class="header">
+
+<img src="logo.png" class="logo">
+
+<div class="header-text">
+
+<h1>ĐẠI HỌC CNTT & TRUYỀN THÔNG - ICTU</h1>
+<h2>LỚP KTMT K22 - NHÓM THỰC HÀNH 3</h2>
+<h3>MÔN: LẬP TRÌNH TRUYỀN THÔNG TRÊN HỆ NHÚNG</h3>
+
+</div>
+</div>
+
+
+<div class="monitor-title">
+
+ĐỀ TÀI: HỆ THỐNG GIÁM SÁT CHẤT LƯỢNG NƯỚC QUA CẢM BIẾN PH
+
+</div>
+
+
+<div class="status-panel">
+
+<div class="status-row">
+
+<span class="label">CONNECTION:</span>
+
+<span id="connectedBox" class="status-box">CONNECTED</span>
+<span id="disconnectedBox" class="status-box">DISCONNECTED</span>
+
+</div>
+
+
+<div class="status-row">
+
+<span class="label">PH STATUS:</span>
+
+<span id="okBox" class="status-box">OK</span>
+<span id="alertBox" class="status-box">VƯỢT NGƯỠNG</span>
+
+</div>
+
+
+<div class="status-row">
+
+<span class="label">PH TYPE:</span>
+
+<span id="acidBox" class="status-box">AXIT</span>
+<span id="neutralBox" class="status-box">TRUNG TÍNH</span>
+<span id="baseBox" class="status-box">BAZƠ</span>
+
+</div>
+
+</div>
+
+
+<div class="ph-value">
+
+<span id="phNumber">--</span>
+
+</div>
+
+
+<canvas id="chart"></canvas>
+
+
+<div class="button-panel">
+
+<button onclick="testLED()" class="control-btn">
+TEST LED
+</button>
+
+<button onclick="resetChart()" class="control-btn reset-btn">
+RESET BIỂU ĐỒ
+</button>
+
+</div>
+
+
+<!-- RECORD PANEL -->
+
+<div class="record-panel">
+
+<input type="password" id="password" placeholder="Nhập mã khóa">
+
+<button onclick="unlockRecord()" class="control-btn">
+
+MỞ KHÓA
+
+</button>
+
+<br><br>
+
+<input type="text" id="noteInput" placeholder="Ghi chú mẫu nước">
+
+<button id="recordBtn" onclick="recordPH()" class="control-btn record-btn" disabled>
+
+RECORD KẾT QUẢ
+
+</button>
+
+</div>
+
+
+<!-- HISTORY PANEL -->
+
+<div class="history-panel">
+
+<h3>LỊCH SỬ ĐO PH</h3>
+
+<input type="date" id="datePicker">
+
+<button onclick="loadHistory()" class="control-btn">
+XEM LỊCH SỬ
+</button>
+
+<table id="historyTable">
+
+<tr>
+<th>Thời gian</th>
+<th>pH</th>
+<th>Ghi chú</th>
+</tr>
+
+<tbody id="historyBody"></tbody>
+
+</table>
+
+</div>
+
+
+</div>
+
+
+<script>
+
+let labels=[]
+let data=[]
+
+let currentPH=0
+
+const ctx=document.getElementById("chart")
+
+const phNumber=document.getElementById("phNumber")
+
+const connectedBox=document.getElementById("connectedBox")
+const disconnectedBox=document.getElementById("disconnectedBox")
+
+const okBox=document.getElementById("okBox")
+const alertBox=document.getElementById("alertBox")
+
+const acidBox=document.getElementById("acidBox")
+const neutralBox=document.getElementById("neutralBox")
+const baseBox=document.getElementById("baseBox")
+
+const recordBtn=document.getElementById("recordBtn")
+
+
+const chart=new Chart(ctx,{
+
+type:"line",
+
+data:{
+labels:labels,
+datasets:[{
+label:"Giá trị pH",
+data:data,
+borderColor:"#00ffcc",
+borderWidth:2,
+tension:0.3
+}]
+},
+
+options:{
+responsive:true,
+animation:false,
+scales:{y:{min:0,max:14}}
+}
+
+})
+
+
+
+function setConnectionStatus(isConnected){
+
+connectedBox.classList.remove("active-green")
+disconnectedBox.classList.remove("active-red")
+
+if(isConnected){
+connectedBox.classList.add("active-green")
+}
+else{
+disconnectedBox.classList.add("active-red")
+}
+
+}
+
+
+
+function setPHStatus(ph){
+
+okBox.classList.remove("active-green")
+alertBox.classList.remove("active-red")
+
+if(ph<6.5 || ph>8.5){
+alertBox.classList.add("active-red")
+}
+else{
+okBox.classList.add("active-green")
+}
+
+}
+
+
+
+function setPHType(ph){
+
+acidBox.classList.remove("type-acid")
+neutralBox.classList.remove("type-neutral")
+baseBox.classList.remove("type-base")
+
+if(ph<6.5){
+acidBox.classList.add("type-acid")
+}
+else if(ph>7.5){
+baseBox.classList.add("type-base")
+}
+else{
+neutralBox.classList.add("type-neutral")
+}
+
+}
+
+
+
+function clearStatus(){
+
+okBox.classList.remove("active-green")
+alertBox.classList.remove("active-red")
+
+acidBox.classList.remove("type-acid")
+neutralBox.classList.remove("type-neutral")
+baseBox.classList.remove("type-base")
+
+}
+
+
+
+const socket=new WebSocket("ws://localhost:3000")
+
+let lastReceiveTime=Date.now()
+let connectionTimeout=3000
+
+
+
+socket.onmessage=function(event){
+
+lastReceiveTime=Date.now()
+
+const result=JSON.parse(event.data)
+
+let ph=parseFloat(result.ph)
+
+currentPH=ph
+
+phNumber.innerText=ph.toFixed(2)
+
+setConnectionStatus(true)
+setPHStatus(ph)
+setPHType(ph)
+
+labels.push("")
+data.push(ph)
+
+if(data.length>30){
+data.shift()
+labels.shift()
+}
+
+chart.update()
+
+}
+
+
+
+setInterval(()=>{
+
+if(Date.now()-lastReceiveTime>connectionTimeout){
+
+setConnectionStatus(false)
+phNumber.innerText="--"
+clearStatus()
+
+}
+
+},1000)
+
+
+
+function testLED(){
+
+fetch("/command",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({cmd:"T"})
+
+})
+
+}
+
+
+
+function resetChart(){
+
+data=[]
+labels=[]
+
+chart.data.labels=labels
+chart.data.datasets[0].data=data
+
+chart.update()
+
+}
+
+
+
+function unlockRecord(){
+
+const pass=document.getElementById("password").value
+
+if(pass==="1234"){
+
+recordBtn.disabled=false
+
+alert("Đã mở khóa ghi dữ liệu")
+
+}
+else{
+
+alert("Sai mã khóa")
+
+}
+
+}
+
+
+
+function recordPH(){
+
+const note=document.getElementById("noteInput").value
+
+fetch("/record",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+note:note
+})
+
+})
+.then(()=>{
+
+alert("Đã ghi pH: "+currentPH.toFixed(2))
+
+document.getElementById("noteInput").value=""
+
+})
+
+}
+
+
+
+function loadHistory(){
+
+const date = document.getElementById("datePicker").value;
+
+fetch("/history?date=" + date)
+
+.then(res => res.json())
+
+.then(data => {
+
+const body = document.getElementById("historyBody");
+
+body.innerHTML = "";
+
+data.forEach(item => {
+
+const row = `
+<tr>
+<td>${new Date(item.time).toLocaleString()}</td>
+<td>${item.ph}</td>
+<td>${item.note}</td>
+</tr>
+`;
+
+body.innerHTML += row;
+
+});
+
+});
+
+}
+
+</script>
+
+</body>
+</html>

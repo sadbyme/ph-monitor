@@ -1,0 +1,140 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #002147, #004080);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: white;
+}
+
+.container {
+    background: rgba(255,255,255,0.1);
+    padding: 24px;              /* 30 → 24 */
+    border-radius: 16px;        /* 20 → 16 */
+    width: 92%;
+    max-width: 800px;           /* 1000 → 800 */
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.logo {
+    width: 65px;                /* 80 → 65 */
+    margin-right: 15px;
+}
+
+.monitor-title {
+    margin-top: 15px;
+    font-size: 18px;            /* 22 → 18 */
+    font-weight: bold;
+    background: #00bcd4;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.status-panel { margin: 20px 0; }
+
+.status-row { 
+    margin: 8px 0; 
+    font-size: 15px;            /* 18 → 15 */
+}
+
+.label { 
+    font-weight: bold; 
+    margin-right: 10px; 
+}
+
+.status-box {
+    display: inline-block;
+    padding: 5px 14px;          /* nhỏ lại */
+    margin-right: 8px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.15);
+    color: #ddd;
+    font-weight: bold;
+    transition: 0.3s;
+    font-size: 13px;
+}
+
+.active-green {
+    background: #2ecc71 !important;
+    box-shadow: 0 0 8px #2ecc71;
+    color: white;
+}
+
+.active-red {
+    background: #e74c3c !important;
+    box-shadow: 0 0 8px #e74c3c;
+    color: white;
+}
+
+.type-acid {
+    background: #e74c3c !important;
+    box-shadow: 0 0 8px #e74c3c;
+    color: white;
+}
+
+.type-neutral {
+    background: #2ecc71 !important;
+    box-shadow: 0 0 8px #2ecc71;
+    color: white;
+}
+
+.type-base {
+    background: #9b59b6 !important;
+    box-shadow: 0 0 8px #9b59b6;
+    color: white;
+}
+
+.ph-value {
+    font-size: 55px;            /* 70 → 55 */
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+canvas {
+    background: white;
+    border-radius: 12px;
+    padding: 8px;
+    max-height: 260px;          /* thu nhỏ biểu đồ */
+}
+
+.button-panel {
+    margin-top: 15px;
+}
+
+.control-btn {
+    padding: 8px 16px;          /* nhỏ lại */
+    margin: 6px;
+    border: none;
+    border-radius: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #3498db;
+    color: white;
+    transition: 0.3s;
+    font-size: 13px;
+}
+
+.control-btn:hover {
+    background: #2980b9;
+}
+
+.reset-btn {
+    background: #e67e22;
+}
+
+.reset-btn:hover {
+    background: #d35400;
+}
+.control-btn:active {
+    transform: scale(0.88);
+}
