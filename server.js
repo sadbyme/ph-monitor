@@ -21,45 +21,72 @@ mongoose.connect(
 console.log("MongoDB Connected");
 
 
-// ===== MODEL DỮ LIỆU =====
+// ===== MODEL =====
 
-const PHData = mongoose.model("PHData", {
+const PHData = mongoose.model("PHData",{
 
-    ph: Number,
-    note: String,
-    time: Date
+ph:Number,
+note:String,
+time:Date
 
 });
 
 
-// ===== LƯU TRẠNG THÁI =====
+// ===== TRẠNG THÁI =====
 
 let currentPH = 7.00;
-let lastUpdateTime = 0;
 let lastCommand = "";
 
 
 // ===== MIDDLEWARE =====
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
 
 // ===== WEBSOCKET =====
 
-wss.on("connection", (ws) => {
+wss.on("connection",(ws)=>{
 
-    console.log("WebSocket Client Connected");
+console.log("WebSocket Client Connected");
 
-    ws.send(JSON.stringify({
-        ph: currentPH,
-        connected: true
-    }));
+ws.send(JSON.stringify({
+ph:currentPH,
+connected:true
+}));
 
-    ws.on("close", () => {
-        console.log("WebSocket Client Disconnected");
-    });
+
+ws.on("message",(msg)=>{
+
+try{
+
+const data = JSON.parse(msg);
+
+if(data.ph){
+
+currentPH = data.ph;
+
+console.log("PH from WebSocket:",currentPH);
+
+broadcastPH();
+
+}
+
+}catch(e){
+
+console.log("WS message error");
+
+}
+
+});
+
+
+ws.on("close",()=>{
+
+console.log("WebSocket Client Disconnected");
+
+});
 
 });
 
@@ -68,75 +95,74 @@ wss.on("connection", (ws) => {
 
 function broadcastPH(){
 
-    const data = JSON.stringify({
-        ph: currentPH,
-        connected: true
-    });
+const data = JSON.stringify({
+ph:currentPH,
+connected:true
+});
 
-    wss.clients.forEach(client => {
+wss.clients.forEach(client=>{
 
-        if(client.readyState === WebSocket.OPEN){
+if(client.readyState===WebSocket.OPEN){
 
-            client.send(data);
+client.send(data);
 
-        }
+}
 
-    });
+});
 
 }
 
 
-// ===== ESP GỬI PH =====
+// ===== ESP GỬI PH (HTTP) =====
 
 app.post("/update",(req,res)=>{
 
-    currentPH = req.body.ph;
-    lastUpdateTime = Date.now();
+currentPH = req.body.ph;
 
-    console.log("Received PH:",currentPH);
+console.log("Received PH HTTP:",currentPH);
 
-    broadcastPH();
+broadcastPH();
 
-    res.send("OK");
-
-});
-
-
-// ===== WEB RECORD DATA =====
-
-app.post("/record", async (req,res)=>{
-
-    const note = req.body.note;
-
-    console.log("Record PH:",currentPH,"Note:",note);
-
-    const data = new PHData({
-
-        ph: currentPH,
-        note: note,
-        time: new Date()
-
-    });
-
-    await data.save();
-
-    res.send("Recorded");
+res.send("OK");
 
 });
 
 
-// ===== LỊCH SỬ PH =====
+// ===== RECORD DATA =====
 
-app.get("/history", async (req,res)=>{
+app.post("/record",async(req,res)=>{
 
-const date = req.query.date;
+const note=req.body.note;
 
-let start = new Date(date);
-let end = new Date(date);
+console.log("Record PH:",currentPH,"Note:",note);
+
+const data=new PHData({
+
+ph:currentPH,
+note:note,
+time:new Date()
+
+});
+
+await data.save();
+
+res.send("Recorded");
+
+});
+
+
+// ===== HISTORY =====
+
+app.get("/history",async(req,res)=>{
+
+const date=req.query.date;
+
+let start=new Date(date);
+let end=new Date(date);
 
 end.setHours(23,59,59);
 
-const data = await PHData.find({
+const data=await PHData.find({
 
 time:{
 $gte:start,
@@ -150,26 +176,26 @@ res.json(data);
 });
 
 
-// ===== WEB GỬI LỆNH =====
+// ===== COMMAND =====
 
 app.post("/command",(req,res)=>{
 
-    lastCommand = req.body.cmd;
+lastCommand=req.body.cmd;
 
-    console.log("Command from Web:",lastCommand);
+console.log("Command from Web:",lastCommand);
 
-    res.send("OK");
+res.send("OK");
 
 });
 
 
-// ===== ESP HỎI LỆNH =====
+// ===== ESP LẤY LỆNH =====
 
 app.get("/get_command",(req,res)=>{
 
-    res.json({cmd:lastCommand});
+res.json({cmd:lastCommand});
 
-    lastCommand="";
+lastCommand="";
 
 });
 
@@ -181,7 +207,7 @@ server.listen(PORT,"0.0.0.0",()=>{
 console.log("=================================");
 console.log("Server running");
 console.log("Local:   http://localhost:"+PORT);
-console.log("Network: http://YOUR_IP:"+PORT);
 console.log("=================================");
 
 });
+
