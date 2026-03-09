@@ -85,9 +85,6 @@
 
 <div class="button-panel">
 
-<button onclick="testLED()" class="control-btn">
-TEST LED
-</button>
 
 <button onclick="resetChart()" class="control-btn reset-btn">
 RESET BIỂU ĐỒ
@@ -304,23 +301,6 @@ clearStatus()
 }
 
 },1000)
-
-
-function testLED(){
-
-fetch("/command",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({cmd:"T"})
-
-})
-
-}
 
 
 function resetChart(){
