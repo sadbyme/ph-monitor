@@ -180,14 +180,27 @@ res.json(data);
 
 app.post("/command",(req,res)=>{
 
-lastCommand=req.body.cmd;
+lastCommand = req.body.cmd;
 
 console.log("Command from Web:",lastCommand);
+
+// gửi qua websocket cho ESP
+
+wss.clients.forEach(client=>{
+
+if(client.readyState===WebSocket.OPEN){
+
+client.send(JSON.stringify({
+cmd:lastCommand
+}));
+
+}
+
+});
 
 res.send("OK");
 
 });
-
 
 // ===== ESP LẤY LỆNH =====
 
