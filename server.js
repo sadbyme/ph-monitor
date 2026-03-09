@@ -15,9 +15,9 @@ const PORT = process.env.PORT || 3000;
 
 mongoose.connect(
 "mongodb://Ph_ictu_vn:ictu12345@ac-qf9op2t-shard-00-00.agrd6q1.mongodb.net:27017,ac-qf9op2t-shard-00-01.agrd6q1.mongodb.net:27017,ac-qf9op2t-shard-00-02.agrd6q1.mongodb.net:27017/phdata?ssl=true&replicaSet=atlas-v83gbp-shard-0&authSource=admin&appName=Cluster0"
-);
-
-console.log("MongoDB Connected");
+)
+.then(()=>console.log("MongoDB Connected"))
+.catch(err=>console.log("MongoDB Error:",err));
 
 
 // ===== MODEL =====
@@ -68,7 +68,7 @@ data = JSON.parse(text);
 data = { ph: parseFloat(text) };
 }
 
-if(data.ph){
+if(data.ph !== undefined){
 
 currentPH = Number(data.ph);
 
